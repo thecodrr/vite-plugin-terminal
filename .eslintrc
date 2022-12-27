@@ -2,6 +2,8 @@
   "extends": ["@antfu"],
   "rules": {
     "no-undef": "off",
-    "import/named": "off"
+    "import/named": "off",
+    "no-console": "warn",
+    "no-useless-call": "warn"
   }
 }

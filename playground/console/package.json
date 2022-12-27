@@ -1,5 +1,5 @@
 {
-  "name": "playground-basic",
+  "name": "playground-console",
   "private": true,
   "main": "index.js",
   "license": "MIT",
@@ -11,6 +11,6 @@
   },
   "devDependencies": {
     "vite": "latest",
-    "vite-plugin-terminal": "latest"
+    "vite-plugin-terminal": "../../"
   }
 }

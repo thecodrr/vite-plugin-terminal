@@ -17,14 +17,16 @@ export function createTable(obj: any) {
     allValueKeys.push(...new Set(keys.flatMap(key => isObj(obj[key]) ? Object.keys(obj[key]) : [])))
     headerRow.push(...allValueKeys)
   }
-  if (shouldRenderValuesCol) headerRow.push('Values')
+  if (shouldRenderValuesCol)
+    headerRow.push('Values')
   rows.push(headerRow)
   keys.forEach((key) => {
     const value = obj[key]
     const row = [key]
     if (shouldRenderKeyCols) {
       row.push(...allValueKeys.map(key => isObj(value) ? (key in value ? value[key] : '') : ''))
-      if (shouldRenderValuesCol) row.push(isObj(value) ? '' : value)
+      if (shouldRenderValuesCol)
+        row.push(isObj(value) ? '' : value)
     }
     else {
       row.push(value)
@@ -69,7 +71,8 @@ export function renderTable(rows: string[][], width: number, indent = 0, doneFir
   }
 
   rowsToRender.forEach((row, index) => {
-    if (index === 0) table.push(renderSeparator('┏━┳━┓'))
+    if (index === 0)
+      table.push(renderSeparator('┏━┳━┓'))
     const color = index === 0 ? lightGray : lightMagenta
     const cells = row.map((cell, index) => renderCell(cell, getCellWidth(index), color))
     table.push(renderRow(cells, index === 0 ? '┃ ┃ ┃' : '│ │ │'))

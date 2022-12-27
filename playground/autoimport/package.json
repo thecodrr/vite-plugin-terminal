@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "vite": "latest",
-    "vite-plugin-terminal": "latest",
+    "vite-plugin-terminal": "../../",
     "unplugin-auto-import": "latest"
   }
 }

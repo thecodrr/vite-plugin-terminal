@@ -1,5 +1,11 @@
 import readline from 'readline'
-import { lightBlue, lightGray, lightMagenta, lightRed, lightYellow } from 'kolorist'
+import {
+  lightBlue,
+  lightGray,
+  lightMagenta,
+  lightRed,
+  lightYellow,
+} from 'kolorist'
 import type { Plugin, ResolvedConfig, ViteDevServer } from 'vite'
 import { parseURL } from 'ufo'
 import rollupPluginStrip from '@rollup/plugin-strip'
@@ -12,11 +18,17 @@ const virtualResolvedId = `\0${virtualId}`
 const virtualId_console = 'virtual:terminal/console'
 const virtualResolvedId_console = `\0${virtualId_console}`
 
-export type FilterPattern = ReadonlyArray<string | RegExp> | string | RegExp | null
+export type FilterPattern =
+  | ReadonlyArray<string | RegExp>
+  | string
+  | RegExp
+  | null
 type OutputType = 'terminal' | 'console'
 export type LogsOutput = OutputType | OutputType[]
 
 declare const terminalUrl: string
+declare const outputToConsole: boolean
+declare const outputToTerminal: boolean
 
 export interface Options {
   /**
@@ -74,7 +86,16 @@ interface Terminal {
   profileEnd: (...args: any[]) => void
 }
 
-const methods = ['assert', 'debug', 'error', 'info', 'log', 'table', 'warn', 'clear'] as const
+const methods = [
+  'assert',
+  'debug',
+  'error',
+  'info',
+  'log',
+  'table',
+  'warn',
+  'clear',
+] as const
 type Method = typeof methods[number]
 
 const colors = {
@@ -87,17 +108,18 @@ const colors = {
 }
 
 const groupText = (text: string, groupLevel: number) => {
-  if (groupLevel !== 0)
-    return `${'  '.repeat(groupLevel)}${text.split('\n').join(`\n${'  '.repeat(groupLevel)}`)}`
-  else
+  if (groupLevel !== 0) {
+    return `${'  '.repeat(groupLevel)}${text
+      .split('\n')
+      .join(`\n${'  '.repeat(groupLevel)}`)}`
+  }
+  else {
     return text
+  }
 }
 
 function pluginTerminal(options: Options = {}) {
-  const {
-    include = /.+\.(js|ts|mjs|cjs|mts|cts)/,
-    exclude,
-  } = options
+  const { include = /.+\.(js|ts|mjs|cjs|mts|cts)/, exclude } = options
 
   let config: ResolvedConfig
   let virtualModuleCode: string
@@ -115,7 +137,10 @@ function pluginTerminal(options: Options = {}) {
     },
     load(id: string) {
       if (id === virtualResolvedId) {
-        virtualModuleCode ||= generateVirtualModuleCode(config.server?.origin ?? '', options.output)
+        virtualModuleCode ||= generateVirtualModuleCode(
+          config.server?.origin ?? '',
+          options.output,
+        )
         return virtualModuleCode
       }
       if (id === virtualResolvedId_console)
@@ -125,10 +150,15 @@ function pluginTerminal(options: Options = {}) {
       enforce: 'pre',
       transform() {
         if (options.console === 'terminal') {
-          return [{
-            tag: 'script',
-            attrs: { type: 'module', src: '/@id/__x00__virtual:terminal/console' },
-          }]
+          return [
+            {
+              tag: 'script',
+              attrs: {
+                type: 'module',
+                src: '/@id/__x00__virtual:terminal/console',
+              },
+            },
+          ]
         }
       },
     },
@@ -137,7 +167,9 @@ function pluginTerminal(options: Options = {}) {
         const { pathname, search } = parseURL(req.url)
         const searchParams = new URLSearchParams(search.slice(1))
 
-        const message = decodeURI(searchParams.get('m') ?? '').split('\n').join('\n  ')
+        const message = decodeURI(searchParams.get('m') ?? '')
+          .split('\n')
+          .join('\n  ')
         const time = parseInt(searchParams.get('t') ?? '0')
         const count = parseInt(searchParams.get('c') ?? '0')
         const groupLevel = parseInt(searchParams.get('g') ?? '0')
@@ -152,7 +184,8 @@ function pluginTerminal(options: Options = {}) {
                 run = () => {
                   if (process.stdout.isTTY && !process.env.CI) {
                     const repeatCount = process.stdout.rows - 2
-                    const blank = repeatCount > 0 ? '\n'.repeat(repeatCount) : ''
+                    const blank
+                      = repeatCount > 0 ? '\n'.repeat(repeatCount) : ''
                     console.log(blank)
                     readline.cursorTo(process.stdout, 0, 0)
                     readline.clearScreenDown(process.stdout)
@@ -191,9 +224,16 @@ function pluginTerminal(options: Options = {}) {
   return [terminal, options.strip !== false && strip]
 }
 
-function generateVirtualModuleCode(url: string, output?: LogsOutput | LogsOutput[]) {
-  const outputToTerminal = output ? (output === 'terminal' || output.includes('terminal')) : true
-  const outputToConsole = output ? (output === 'console' || output.includes('console')) : false
+function generateVirtualModuleCode(
+  url: string,
+  output?: LogsOutput | LogsOutput[],
+) {
+  const outputToTerminal = output
+    ? output === 'terminal' || output.includes('terminal')
+    : true
+  const outputToConsole = output
+    ? output === 'console' || output.includes('console')
+    : false
   return `const outputToTerminal = ${outputToTerminal}
 const terminalUrl = "${url}"
 const outputToConsole = ${outputToConsole}
@@ -231,20 +271,35 @@ function createTerminal() {
 
   function send(type: string, message?: string) {
     const encodedMessage = message ? `&m=${encodeURI(message)}` : ''
-    fetch(`${terminalUrl}/__terminal/${type}?t=${Date.now()}&c=${count++}&g=${groupLevel}${encodedMessage}`, { mode: 'no-cors' })
+    fetch(
+      `${terminalUrl}/__terminal/${type}?t=${Date.now()}&c=${count++}&g=${groupLevel}${encodedMessage}`,
+      { mode: 'no-cors' },
+    )
   }
 
   const terminal = {
-    log(...objs: any[]) { send('log', stringifyObjs(objs)) },
-    info(...objs: any[]) { send('info', stringifyObjs(objs)) },
-    debug(...objs: any[]) { send('debug', stringifyObjs(objs)) },
-    warn(...objs: any[]) { send('warn', stringifyObjs(objs)) },
-    error(...objs: any[]) { send('error', stringifyObjs(objs)) },
+    log(...objs: any[]) {
+      send('log', stringifyObjs(objs))
+    },
+    info(...objs: any[]) {
+      send('info', stringifyObjs(objs))
+    },
+    debug(...objs: any[]) {
+      send('debug', stringifyObjs(objs))
+    },
+    warn(...objs: any[]) {
+      send('warn', stringifyObjs(objs))
+    },
+    error(...objs: any[]) {
+      send('error', stringifyObjs(objs))
+    },
     assert(assertion: boolean, ...objs: any[]) {
       if (!assertion)
         send('assert', `Assertion failed: ${stringifyObjs(objs)}`)
     },
-    table(obj: any) { send('table', prettyPrint(obj)) },
+    table(obj: any) {
+      send('table', prettyPrint(obj))
+    },
     group() {
       groupLevel++
     },
@@ -284,32 +339,33 @@ function createTerminal() {
     dirxml(obj: any) {
       send('log', prettyPrint(obj))
     },
-    trace(...args: any[]) { console.trace(...args) },
-    profile(...args: any[]) { console.profile(...args) },
-    profileEnd(...args: any[]) { console.profileEnd(...args) },
+    trace(...args: any[]) {
+      console.trace(...args)
+    },
+    profile(...args: any[]) {
+      console.profile(...args)
+    },
+    profileEnd(...args: any[]) {
+      console.profileEnd(...args)
+    },
   }
 
   function defineOutput(terminal: Terminal) {
-    // @ts-ignore
     if (!outputToConsole)
       return terminal
-    // @ts-ignore
     if (!outputToTerminal)
       return console
     // Log to both the terminal and the console
     const unsupportedMethods = ['trace', 'profile', 'profileEnd']
-    const multicast = {}
+    const multicast: Partial<Terminal> = {}
     Object.keys(terminal).forEach((method) => {
-      // @ts-ignore
-      multicast[method] = unsupportedMethods.includes(method)
-        // @ts-ignore
-        ? console[method]
+      const key = method as keyof typeof terminal
+      multicast[key] = unsupportedMethods.includes(method)
+        ? console[key]
         : (...args: any[]) => {
-          // @ts-ignore
-          console[method](...args)
-          // @ts-ignore
-          terminal[method](...args)
-        }
+            console[key].call(console, ...args)
+            terminal[key].call(terminal, ...args)
+          }
     })
     return multicast as Terminal
   }

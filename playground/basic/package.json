@@ -11,6 +11,6 @@
   },
   "devDependencies": {
     "vite": "latest",
-    "vite-plugin-terminal": "latest"
+    "vite-plugin-terminal": "../../"
   }
 }
